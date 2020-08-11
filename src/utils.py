@@ -15,7 +15,9 @@ def get_page_rank(graph: np.ndarray, vocab: dict, d:float=0.85) -> list:
     return sorted(word_rank.items(), key=lambda x: x[1], reverse=True)
 
 
-def visualize_graph(graph: np.ndarray) -> None:
+def visualize_graph(graph: np.ndarray, output_file: str='pagerank_graph.png') -> None:
     graph = nx.from_numpy_array(graph)
-    nx.draw(graph)
+    pos = nx.spring_layout(graph, iterations=200)
+    nx.draw(graph, pos=pos, with_labels=True)
+    plt.savefig(output_file)
     plt.show()
