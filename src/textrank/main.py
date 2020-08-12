@@ -3,9 +3,9 @@ __author__ = 'JudePark'
 __email__ = 'judepark@kookmin.ac.kr'
 
 
-from src.doc_tokenizer import DocTokenizer
-from src.extractor import Extractor
-from src.utils import get_page_rank, visualize_graph
+from src.textrank.doc_tokenizer import DocTokenizer
+from src.textrank.extractor import Extractor
+from src.textrank.utils import get_page_rank, visualize_graph
 
 
 if __name__ == '__main__':
