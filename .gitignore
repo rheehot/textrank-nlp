@@ -2,6 +2,7 @@
 venv
 .idea
 .ipynb_checkpoints
+src/keyword/rsc
 
 
 # Byte-compiled / optimized / DLL files
