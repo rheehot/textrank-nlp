@@ -2,7 +2,7 @@
 __author__ = 'JudePark'
 __email__ = 'judepark@kookmin.ac.kr'
 
-import logging
+# import logging
 import re
 import unicodedata
 from typing import List
@@ -10,7 +10,7 @@ from typing import List
 from nltk.stem.porter import PorterStemmer
 
 stemmer = PorterStemmer()
-logger = logging.getLogger()
+# logger = logging.getLogger()
 digit = '<digit>'
 
 

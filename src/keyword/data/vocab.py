@@ -33,13 +33,12 @@ class Vocab(object):
             self.vocab2idx[token] = idx
             self.idx2vocab[idx] = token
 
-    def vocab_2_txt(self, output_path: str=None) -> None:
+    def vocab2txt(self, output_path: str=None) -> None:
         vocab_str = '\n'.join([token for token in self.vocab2idx])
 
         with open(output_path, 'w', encoding='utf-8') as f:
             f.writelines(vocab_str)
             f.close()
-
 
 
 if __name__ == '__main__':
