@@ -3,17 +3,19 @@ __author__ = 'JudePark'
 __email__ = 'judepark@kookmin.ac.kr'
 
 from typing import List, Dict
-from itertools import combinations
+from transformers import BertTokenizer
+from torchtext.data import Field, BucketIterator, RawField, Dataset, TabularDataset
 
 import torch
-import torch.nn.functional as F
-import torch as nn
 import numpy as np
 
 
 def normalize_graph(M: torch.Tensor) -> torch.Tensor:
     """
     M = D**(-1/2) M D**(-1/2)
+    In order to stabilize the iterative message propagation progcess in gcn encoder, graph should be normalized.
+    The purpose of this re-normalization trick is to constrain the eigenvalues of the normalized adjacency matrices
+    close to 1.
     """
     deg = M.sum(axis=1).squeeze()
     deg = deg ** (-1/2)
@@ -21,37 +23,53 @@ def normalize_graph(M: torch.Tensor) -> torch.Tensor:
     return D.mm(M.mm(D))
 
 
-def build_graph(tokens: List[int]) -> Dict[str, torch.Tensor]:
+def build_graph(actual_src_len: int=None, max_src_len: int=512) -> Dict[str, torch.Tensor]:
     """
     build the graph representation.
     rules:
         - bi-directional representation (https://arxiv.org/pdf/1905.07689.pdf)
             - backward A_{ij} = \sum_{p_i \in P(w_i)} \sum_{p_j \in P(w_j)} ReLU(\frac{1}{p_i-p_j})
             - forward A_{ij} = \sum_{p_i \in P(w_i)} \sum_{p_j \in P(w_j)} ReLU(\frac{1}{p_j-p_i})
-            - P(w_i) is the set of the position offset p_i of word w_i in thedocument.
+            - P(w_i) is the set of the position offset p_i of word w_i in the document.
+
+    :tokens -> position offset of given sequence.
+    :max_src_len -> max length of given sequence.
     """
 
-    n = len(tokens)
-    g_f, g_b = torch.zeros([n, n]), torch.zeros([n, n]) # square matrix
+    n = max_src_len
+    tokens = [i for i in range(1, actual_src_len + 1)]
 
-    for i, _ in enumerate(tokens):
-        for j, __ in enumerate(tokens[i:]):
-            if i != j:
-                g_b[i][j] = max(0, (1 / (i - j)))
-                g_f[i][j] = max(0, (1 / (j - i)))
+    assert len(tokens) == actual_src_len
+
+    B, F = torch.zeros([n, n]), torch.zeros([n, n]) # square matrix
+
+    for i, offset_i in enumerate(tokens):
+        for j, offset_j in enumerate(tokens):
+            # if each index is same, it will occur ZeroDivisionError
+            if i == j: continue
+
+            B[i][j] = np.maximum(0, (1 / (offset_i - offset_j)))
+            F[i][j] = np.maximum(0, (1 / (offset_j - offset_i)))
+
+    # self-loops
+    i_m = torch.eye(n, n)
+
+    B += i_m
+    F += i_m
 
     return {
-        'backward': g_b + torch.eye(n, n),
-        'forward': g_f + torch.eye(n, n)
+        'backward': B,
+        'forward': F
     }
 
 
 if __name__ == '__main__':
     from pprint import pprint
 
-    tokens = [(i) for i in range(0, 10)]
-    graph = build_graph(tokens)
-    n_g_b, n_g_f = normalize_graph(graph['backward']), normalize_graph(graph['forward'])
-    pprint(n_g_b)
-    pprint(n_g_f)
-    pprint(n_g_b + n_g_f)
+    graph = build_graph(6, 16)
+    B = graph['backward']
+    F = graph['forward']
+    pprint(normalize_graph(B))
+    pprint(normalize_graph(F))
+
+

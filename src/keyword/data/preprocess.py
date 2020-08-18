@@ -7,7 +7,6 @@ import json
 import logging
 import re
 
-from pprint import pprint
 from typing import (List, Tuple, Dict, Union)
 from src.keyword.data.token import get_token, find_stem_answer
 from tqdm import tqdm
@@ -114,8 +113,8 @@ def data2feature(data,
             absent_ids += 1
 
         feature = {
-            'doc_words': src_tokens,
-            'keyphrases': present_phrases['keyphrases']
+            'doc_words': ' '.join(src_tokens),
+            'keyphrases': ' __;__ '.join([' '.join(phrase) for phrase in present_phrases['keyphrases']])
         }
 
         preprocessed_features.append(feature)
@@ -123,19 +122,9 @@ def data2feature(data,
     logger.info('Null : number = {} '.format(null_ids))
     logger.info('Absent : number = {} '.format(absent_ids))
 
+    print(preprocessed_features)
+
     return preprocessed_features
-
-
-def save_ground_truths(examples, filename, kp_key) -> None:
-    with open(filename, 'w', encoding='utf-8') as f_pred:
-        for ex in tqdm(examples):
-            data = {}
-            data['url'] = ex['url']
-            data['KeyPhrases'] = ex[kp_key]
-            f_pred.write("{}\n".format(json.dumps(data)))
-        f_pred.close()
-    logger.info('Success save reference to %s' % filename)
-
 
 def save_preprocess_data(data_list, filename) -> None:
     with open(filename, 'w', encoding='utf-8') as fo:
@@ -150,26 +139,25 @@ if __name__ == '__main__':
 
     parser.add_argument('--source_dataset', type=str, required=True,
                         help="The path to the source dataset (raw json).")
-    parser.add_argument('--ground_truth_path', type=str, required=True,
-                        help="The path to save preprocess data")
     parser.add_argument('--preprocess_path', type=str, required=True,
                         help="The path to save preprocess data")
-    parser.add_argument('--max_src_seq_len', type=int, default=300,
+    parser.add_argument('--max_src_seq_len', type=int, default=512,
                         help="Maximum document sequence length")
     parser.add_argument('--max_trg_seq_len', type=int, default=6,
                         help="Maximum keyphrases sequence length to keep.")
 
     args = parser.parse_args()
 
+
     features = data2feature(
-        load_data('../rsc/kp20k/kp20k_training.json'),
+        load_data('../rsc/kp20k/kp20k_validation.json'),
         args.max_src_seq_len,
         args.max_trg_seq_len,
         True,
         True)
 
-    if 'train' not in args.ground_truth_path:
-        save_ground_truths(features, args.ground_truth_path, 'keyphrases')
-
+    # if 'train' not in args.ground_truth_path:
+    #     save_ground_truths(features, args.ground_truth_path, 'keyphrases')
+    #
     save_preprocess_data(features, args.preprocess_path)
     # data2feature(load_data('../rsc/kp20k/kp20k_training.json'), 256, 10, True, True)

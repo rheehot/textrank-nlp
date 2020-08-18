@@ -8,7 +8,7 @@ import unicodedata
 from typing import List, Tuple
 
 from nltk.stem.porter import PorterStemmer
-from transformers import BertTokenizer
+from transformers import BertTokenizer, BertTokenizerFast
 
 stemmer = PorterStemmer()
 # logger = logging.getLogger()
@@ -113,12 +113,12 @@ def find_stem_answer(word_list, ans_list):
     return {'keyphrases': tot_ans_str, 'start_end_pos': tot_start_end_pos}
 
 
-def get_tokenizer(model_name: str='bert-base-uncased') -> Tuple[BertTokenizer, int]:
+def get_bert_tokenizer(model_name: str='bert-base-uncased') -> Tuple[BertTokenizer, int]:
     """
     bert.resize_token_embeddings(orig_num_tokens + num_added_tokens)
     """
-    decode_sep = '[;]'
-    tokenizer = BertTokenizer.from_pretrained(model_name)
+    decode_sep = '__;__'
+    tokenizer = BertTokenizerFast.from_pretrained(model_name)
     special_tokens_dict = {'additional_special_tokens': [decode_sep]}
 
     orig_num_tokens = len(tokenizer)
