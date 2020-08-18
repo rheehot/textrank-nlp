@@ -49,8 +49,8 @@ def load_data(output_path: str,
 def data2feature(data,
                  max_src_seq_len: int,
                  max_trg_seq_len: int,
-                 valid_check: bool,
-                 lower: bool) -> List[Dict]:
+                 valid_check: bool=True,
+                 lower: bool=True) -> List[Dict]:
     preprocessed_features = []
     null_ids, absent_ids = 0, 0
 
@@ -141,7 +141,7 @@ if __name__ == '__main__':
                         help="The path to the source dataset (raw json).")
     parser.add_argument('--preprocess_path', type=str, required=True,
                         help="The path to save preprocess data")
-    parser.add_argument('--max_src_seq_len', type=int, default=512,
+    parser.add_argument('--max_src_seq_len', type=int, default=256,
                         help="Maximum document sequence length")
     parser.add_argument('--max_trg_seq_len', type=int, default=6,
                         help="Maximum keyphrases sequence length to keep.")
@@ -150,7 +150,8 @@ if __name__ == '__main__':
 
 
     features = data2feature(
-        load_data('../rsc/kp20k/kp20k_validation.json'),
+        # load_data('../rsc/kp20k/kp20k_validation.json'),
+        load_data(args.source_dataset),
         args.max_src_seq_len,
         args.max_trg_seq_len,
         True,
