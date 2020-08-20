@@ -2,6 +2,12 @@
 __author__ = 'JudePark'
 __email__ = 'judepark@kookmin.ac.kr'
 
+import sys
+import os
+
+sys.path.append(os.pardir)
+sys.path.append(os.path.join(os.pardir, os.pardir))
+
 import argparse
 import json
 import logging
