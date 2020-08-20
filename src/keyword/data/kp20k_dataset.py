@@ -4,13 +4,12 @@ __email__ = 'judepark@kookmin.ac.kr'
 
 import json
 import torch
+import argparse
 
 
-from typing import List, Dict
-from pprint import pprint
-from torch.utils.data import Dataset, DataLoader
+from typing import Dict
+from torch.utils.data import Dataset
 from tqdm import tqdm
-from transformers import BatchEncoding
 from src.keyword.data.graph_util import build_graph, normalize_graph
 from src.keyword.data.token import get_bert_tokenizer
 
@@ -66,11 +65,21 @@ def save_dataset(input_file: str, output_file: str, max_src_len: int, max_trg_le
     torch.save(dataset, output_file)
 
 
-if __name__ == '__main__':
-    # save_dataset('../rsc/preprocessed/kp20k.valid.json', './valid_dataset_test.pt', 256, 16)
-    dataset = torch.load('./valid_dataset_test.pt')
-    dataloader = DataLoader(dataset, 16)
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--source_dataset', type=str, required=True,
+                        help="The path to the source dataset (preprocessed json).")
+    parser.add_argument('--output_path', type=str, required=True,
+                        help="The output path")
+    parser.add_argument('--max_src_seq_len', type=int, default=256,
+                        help="Maximum document sequence length")
+    parser.add_argument('--max_trg_seq_len', type=int, default=16,
+                        help="Maximum keyphrases sequence length to keep.")
 
-    for batch in dataloader:
-        print(batch)
-        break
+    args = parser.parse_args()
+
+    save_dataset(args.source_dataset, args.output_path, args.max_src_seq_len, args.max_trg_seq_len)
+
+
+if __name__ == '__main__':
+    if __name__ == '__main__':
