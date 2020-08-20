@@ -3,6 +3,9 @@ __author__ = 'JudePark'
 __email__ = 'judepark@kookmin.ac.kr'
 
 import json
+import torch
+
+
 from typing import List, Dict
 from pprint import pprint
 from torch.utils.data import Dataset, DataLoader
@@ -24,7 +27,6 @@ class KP20KDataset(Dataset):
 
     def __getitem__(self, index: int) -> Dict[str, str]:
         # 102 -> [SEP]
-        print(self.doc_words[index].shape)
         G = build_graph((self.doc_words[index] == 102).nonzero(as_tuple=False).item(), self.max_src_len)
         A_b = normalize_graph(G['backward'])
         A_f = normalize_graph(G['forward'])
@@ -40,11 +42,13 @@ class KP20KDataset(Dataset):
         return len(self.doc_words)
 
 
-if __name__ == '__main__':
+def save_dataset(input_file: str, output_file: str, max_src_len: int, max_trg_len: int) -> None:
+    assert max_src_len < 512
+
     doc_words = []
     keyphrases = []
 
-    with open('../rsc/preprocessed/kp20k.valid.json', 'r', encoding='utf-8') as f:
+    with open(input_file, 'r', encoding='utf-8') as f:
         for idx, line in enumerate(tqdm(f)):
             json_object = json.loads(line)
             doc_words.append(json_object['doc_words'])
@@ -52,24 +56,21 @@ if __name__ == '__main__':
         f.close()
 
     tokenizer, num_tokens = get_bert_tokenizer()
-    # print(doc_words)
-    print(tokenizer)
+    print('tokenizer loaded', tokenizer, sep=', ')
 
-    import logging
+    assert len(doc_words) == len(keyphrases)
+    doc_words = tokenizer(doc_words, max_length=max_src_len, padding=True, truncation=True, return_tensors='pt')['input_ids']
+    keyphrases = tokenizer(keyphrases, max_length=max_trg_len, padding=True, truncation=True, return_tensors='pt')['input_ids']
 
-    logging.basicConfig(level=logging.INFO)
+    dataset = KP20KDataset(doc_words, keyphrases, max_src_len)
+    torch.save(dataset, output_file)
 
-    print(len(doc_words))
-    print(len(keyphrases))
 
-    doc_words = tokenizer(doc_words, max_length=256, padding=True, truncation=True, return_tensors='pt')['input_ids']
-    keyphrases = tokenizer(keyphrases, max_length=16, padding=True, return_tensors='pt')['input_ids']
+if __name__ == '__main__':
+    # save_dataset('../rsc/preprocessed/kp20k.valid.json', './valid_dataset_test.pt', 256, 16)
+    dataset = torch.load('./valid_dataset_test.pt')
+    dataloader = DataLoader(dataset, 16)
 
-    test_dataloader = DataLoader(KP20KDataset(doc_words, keyphrases, 256), batch_size=4)
-
-    for batch in test_dataloader:
-        print(batch['doc_words'])
-        print(batch['doc_words'].shape)
-        print(batch['A_b'])
-        print(batch['A_b'].shape)
+    for batch in dataloader:
+        print(batch)
         break
