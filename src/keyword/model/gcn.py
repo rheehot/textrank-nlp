@@ -2,10 +2,14 @@
 __author__ = 'JudePark'
 __email__ = 'judepark@kookmin.ac.kr'
 
+from typing import Dict
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
+
+from transformers import BertModel
 
 """
 References
@@ -14,49 +18,41 @@ References
     - Graph Convolution Network
 """
 
-class GCNLayer(nn.Module):
-    def __init__(self, input_dim, output_dim, dropout = 0.2):
+class BertGCNEmbedding(nn.Module):
+    def __init__(self, bert: BertModel, input_dim: int, output_dim: int):
+        super(BertGCNEmbedding, self).__init__()
+        self.bert = bert
+
         """
-        each layer has the following form of computation
-        H = f(A * H * W)
-        H = A_f * H * W_f + A_b * H * W_b + H * W
-        H: (b, seq len, ninp)
-        A: (b, seq len, seq len)
-        W: (ninp, nout)
+        W_f, W_b: Trainable weights for each adjacency matrix of backwards and forward.
+        W: Trainable weights for output of embedding.
         """
-        super(GCNLayer, self).__init__()
         self.W_f = nn.Parameter(torch.randn(input_dim, output_dim))
         self.W_b = nn.Parameter(torch.randn(input_dim, output_dim))
         self.W = nn.Parameter(torch.randn(input_dim, output_dim))
 
-        self.b = nn.Parameter(torch.randn(output_dim))
-        self.relu = nn.ReLU()
-        self.dropout = nn.Dropout(dropout)
-
-    def forward(self, x, A_f, A_b):
+    def forward(self, batch: Dict) -> torch.Tensor:
         """
-        H = relu(A * x * W)
-        x: (b, seq len, ninp) -> embedded representation
-        A: (b, seq len, seq len) -> adjacency matrix
-        W: (ninp, nout)
+        batch['input_ids']: (bs x max_seq_len)
+        batch['A_f']: (bs x max_seq_len x max_seq_len)
+        batch['A_b']: (bs x max_seq_len x max_seq_len)
         """
-        x = self.dropout(x)
-        try:
-            x_f = torch.bmm(A_f, x)
-            x_b = torch.bmm(A_b, x)
-        except:
-            import pdb; pdb.set_trace()
 
-        x_f = x_f.matmul(self.W_f)
-        x_b = x_b.matmul(self.W_b)
-        h = x.matmul(self.W)
+        # [bs x seq_len x hidden_dim]
+        last_hidden_states = self.bert(batch['input_ids'])[0]
 
-        return x_f + x_b + h
-        # try:
-        #     x = torch.bmm(A, x)  # x: (b, seq len, ninp)
-        # except:
-        #     import pdb; pdb.set_trace()
-        #
-        # x = x.matmul(self.W) + self.b
-        # x = self.relu(x)
-        # return x
+        assert last_hidden_states.shape[1] == batch['A_f'].shape[1]
+        assert last_hidden_states.shape[1] == batch['A_b'].shape[1]
+        assert batch['A_f'].shape == batch['A_b'].shape
+
+        # [bs x seq_len x hidden_dim]
+        forward_hidden_states = torch.bmm(batch['A_f'], last_hidden_states)
+        backward_hidden_states = torch.bmm(batch['A_b'], last_hidden_states)
+
+        # [bs x seq_len x output_dim]
+        hs_w_f = forward_hidden_states.matmul(self.W_f)
+        hs_w_b = backward_hidden_states.matmul(self.W_b)
+        hs_w = last_hidden_states.matmul(self.W)
+
+        # [bs x seq_len x output_dim]
+        return F.relu(hs_w + hs_w_b + hs_w_f)
