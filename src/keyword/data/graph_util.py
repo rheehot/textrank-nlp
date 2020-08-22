@@ -2,9 +2,7 @@
 __author__ = 'JudePark'
 __email__ = 'judepark@kookmin.ac.kr'
 
-from typing import List, Dict
-from transformers import BertTokenizer
-from torchtext.data import Field, BucketIterator, RawField, Dataset, TabularDataset
+from typing import  Dict
 
 import torch
 import numpy as np
