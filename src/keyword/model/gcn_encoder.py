@@ -35,7 +35,7 @@ class GCNLayer(nn.Module):
         # $H_{l+1} = H_l + f_l(H_l) \otimes \sigmoid(g_l(H_l))$
         # In the paper, g_l is function defined in a similar way as f_l.
         f_h = h_f + h_b + h_w
-        return x + (f_h * F.sigmoid(f_h))
+        return x + (f_h * torch.sigmoid(f_h))
 
 
 class GCNEncoder(nn.Module):
@@ -55,32 +55,18 @@ class GCNEncoder(nn.Module):
                           [GCNLayer(output_dim, output_dim) for _ in range(num_gcn_layers - 1)]
         self.linear = nn.Linear(2 * output_dim, output_dim)
         self.dropout = nn.Dropout(0.2)
+        self.bn = nn.BatchNorm1d(self.bert.config.hidden_size)
 
     def forward(self, batch: Dict):
         x = self.bert(batch['doc_words'])[0]
-        hidden = []
         for layer in self.gcn_layers:
-            x = layer(x, batch['A_f'], batch['A_b'])
-            print(x[:, 0, :].shape, x.shape)
-            # [1 x hidden_dim], 1 means each hidden states of corresponding word.
-            hidden.append(x[:, 0, :])
+            # In the paper, GCN output with dropout rate P 0.5
+            x = F.dropout(layer(x, batch['A_f'], batch['A_b']), p=0.5)
 
-        mean = x.mean(dim=1)
-        maxm = x.max(dim=1)[0]
-        x = torch.cat((mean, maxm), dim=1)
-        out = self.linear(self.dropout(x))
-        hidden = torch.stack(hidden)
-
-        """
-        TODO: Decoder-Level
-        
-        Example:
-        
-        gru = nn.GRU(input_size=128, hidden_size=128, num_layers=2)
-        gru(seq.shape (seq_len x bs x hidden_dim), hidden (num_layers x bs x hidden_dim))
-        num_layers is following num_gcn_layers
-        """
-        return out, hidden
+        x = torch.einsum('ijk->ikj', x)
+        x = self.bn(x)
+        # [bs x hidden_dim x seq_len]
+        return x
 
 
 if __name__ == '__main__':
@@ -103,5 +89,6 @@ if __name__ == '__main__':
     }
 
     graph_encoder = GCNEncoder(bert, 768, 3)
-    x, hidden = graph_encoder(batch)
-
+    x = graph_encoder(batch)
+    print(x.shape)
+    print(x)
