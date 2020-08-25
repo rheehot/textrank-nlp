@@ -3,8 +3,9 @@ venv
 .idea
 .ipynb_checkpoints
 src/keyword/rsc
-
+src/keyword/notebooks/.vector_cache
 *.pt
+*.zip
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

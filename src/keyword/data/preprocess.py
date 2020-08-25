@@ -33,6 +33,7 @@ def load_data(output_path: str,
 
     with open(output_path, 'r', encoding='utf-8') as f:
         for idx, line in enumerate(tqdm(f)):
+            if idx == 100: break
             json_object = json.loads(line)
 
             title = ' '.join([json_object[src_fields[0]]])
@@ -139,6 +140,17 @@ def save_preprocess_data(data_list, filename) -> None:
         fo.close()
     logger.info("Success save file to %s \n" % filename)
 
+
+def save_preprocess_data_to_tsv(data_list, filename) -> None:
+    import csv
+    with open('../rsc/preprocessed/output.tsv', 'wt') as out_file:
+        tsv_writer = csv.writer(out_file, delimiter='\t')
+        for data in tqdm(data_list):
+            tsv_writer.writerow([data['doc_words'], data['keyphrases']])
+        # tsv_writer.writerow(['Dijkstra', 'Computer Science'])
+        # tsv_writer.writerow(['Shelah', 'Math'])
+        # tsv_writer.writerow(['Aumann', 'Economic Sciences'])
+        out_file.close()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

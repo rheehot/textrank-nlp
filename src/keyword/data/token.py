@@ -118,8 +118,11 @@ def get_bert_tokenizer(model_name: str='bert-base-uncased') -> Tuple[BertTokeniz
     bert.resize_token_embeddings(orig_num_tokens + num_added_tokens)
     """
     decode_sep = '__;__'
+    sos = '<sos>'
+    eos = '<eos>'
+
     tokenizer = BertTokenizerFast.from_pretrained(model_name)
-    special_tokens_dict = {'additional_special_tokens': [decode_sep]}
+    special_tokens_dict = {'additional_special_tokens': [decode_sep, sos, eos]}
 
     orig_num_tokens = len(tokenizer)
     num_added_tokens = tokenizer.add_special_tokens(special_tokens_dict)
