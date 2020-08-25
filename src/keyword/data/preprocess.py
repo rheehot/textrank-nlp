@@ -15,6 +15,7 @@ import re
 
 from typing import (List, Tuple, Dict, Union)
 from src.keyword.data.token import get_token, find_stem_answer
+from src.keyword.data.graph_util import normalize_graph, build_graph
 from tqdm import tqdm
 
 logger = logging.getLogger()

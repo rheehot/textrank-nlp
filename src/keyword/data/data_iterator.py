@@ -31,7 +31,9 @@ def get_dataset(file_path: str,
     SRC = Field(
         tokenize=lambda x: x.split(' '),
         lower=True,
-        batch_first=True)
+        batch_first=True,
+        include_lengths=True
+    )
 
     TRG = Field(
         tokenize=lambda x: x.split(' '),
