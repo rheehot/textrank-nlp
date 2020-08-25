@@ -147,7 +147,7 @@ def main():
         args.train_file,
         args.valid_file,
         args.test_file,
-        args.min_freq
+        args.min_freq,
         (args.glove_words, args.glove_dim)
     )
 
