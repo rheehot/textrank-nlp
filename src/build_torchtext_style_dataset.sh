@@ -1,0 +1,13 @@
+python3 ./keyword/data/data_iterator.py \
+        --source_dataset_path ./keyword/rsc/preprocessed/ \
+        --train_file kp20k.train.256.16.json \
+        --valid_file kp20k.valid.256.16.json \
+        --test_file kp20k.test.256.16.json \
+        --output_train_path ./keyword/rsc/torchtext/kp20k.train.256.16.6b.300d.pt \
+        --output_valid_path ./keyword/rsc/torchtext/kp20k.valid.256.16.6b.300d.pt \
+        --output_test_path ./keyword/rsc/torchtext/kp20k.test.256.16.6b.300d.pt \
+        --src_field_path ./keyword/rsc/torchtext/SRC.field \
+        --trg_field_path ./keyword/rsc/torchtext/TRG.field \
+        --min_freq 2 \
+        --glove_dim 300 \
+        --glove_words '6b'
