@@ -164,7 +164,7 @@ def main():
     print('saving dataset...')
     logger.info('saving dataset...')
     save_dataset(train_dataset, args.output_train_path)
-    save_dataset(valid_dataset, args.valid_train_path)
+    save_dataset(valid_dataset, args.output_valid_path)
     save_dataset(test_dataset, args.output_test_path)
 
     print('saving fields...')
