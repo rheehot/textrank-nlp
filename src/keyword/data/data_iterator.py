@@ -135,7 +135,7 @@ def main():
                         help="GloVe Dim")
     parser.add_argument('--glove_dim', type=int, default=100,
                         help="GloVe Dim")
-    parser.add_argument('--glove_words', type=str, default=6,
+    parser.add_argument('--glove_words', type=str, default='6B',
                         help="GloVe Words")
 
     args = parser.parse_args()

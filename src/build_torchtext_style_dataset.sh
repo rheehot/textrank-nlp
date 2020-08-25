@@ -10,4 +10,4 @@ python3 ./keyword/data/data_iterator.py \
         --trg_field_path ./keyword/rsc/torchtext/TRG.field \
         --min_freq 2 \
         --glove_dim 300 \
-        --glove_words '6b'
+        --glove_words '6B'
