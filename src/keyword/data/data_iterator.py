@@ -5,6 +5,11 @@ __email__ = 'judepark@kookmin.ac.kr'
 import argparse
 import torch
 import dill
+import sys
+import os
+
+sys.path.append(os.pardir)
+sys.path.append(os.path.join(os.pardir, os.pardir))
 
 from tqdm import tqdm
 from typing import Tuple
