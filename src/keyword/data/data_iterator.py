@@ -3,6 +3,7 @@ __author__ = 'JudePark'
 __email__ = 'judepark@kookmin.ac.kr'
 
 import argparse
+import logging
 import torch
 import dill
 import sys
@@ -10,6 +11,8 @@ import os
 
 sys.path.append(os.pardir)
 sys.path.append(os.path.join(os.pardir, os.pardir))
+
+logger = logging.getLogger()
 
 from tqdm import tqdm
 from typing import Tuple
@@ -141,6 +144,7 @@ def main():
     args = parser.parse_args()
 
     print('building torchtext dataset...')
+    logger.info('building torchtext dataset...')
 
     train_dataset, valid_dataset, test_dataset, SRC, TRG = get_dataset(
         args.source_dataset_path,
@@ -151,17 +155,20 @@ def main():
         (args.glove_words, args.glove_dim)
     )
 
-    print('building graph dataset...')
-    train_dataset, valid_dataset, test_dataset = build_graph_dataset(train_dataset), \
-                                                 build_graph_dataset(valid_dataset), \
-                                                 build_graph_dataset(test_dataset)
+    # print('building graph dataset...')
+    # logger.info('building graph dataset...')
+    # train_dataset, valid_dataset, test_dataset = build_graph_dataset(train_dataset), \
+    #                                              build_graph_dataset(valid_dataset), \
+    #                                              build_graph_dataset(test_dataset)
 
     print('saving dataset...')
+    logger.info('saving dataset...')
     save_dataset(train_dataset, args.output_train_path)
     save_dataset(valid_dataset, args.valid_train_path)
     save_dataset(test_dataset, args.output_test_path)
 
     print('saving fields...')
+    logger.info('saving fields...')
     save_fields(SRC, args.src_field_path)
     save_fields(SRC, args.trg_field_path)
 
